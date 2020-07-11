@@ -1,3 +1,6 @@
+import re
+
+from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from dataset import BaseDataset
@@ -20,7 +23,8 @@ except (AttributeError, ModuleNotFoundError):
     print(f"{model_name} not included!")
     exit()
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:4" if torch.cuda.is_available() else "cpu")
+
 
 
 class EarlyStopping:
@@ -64,9 +68,12 @@ def latest_checkpoint(directory):
 
 
 def train():
+    r = '[!"#$%&\'()*+,-./:;<=>?@，。?★、…【】《》？“”‘’！[\\]^_`{|}~\s]+'
+    datatime = re.sub(r, '', datetime.datetime.now().replace(microsecond=0).isoformat())
+
     writer = SummaryWriter(
         log_dir=
-        f"./runs/{model_name}/{datetime.datetime.now().replace(microsecond=0).isoformat()}{'-' + os.environ['REMARK'] if 'REMARK' in os.environ else ''}"
+        f"./runs/{model_name}/{datatime}{'-' + os.environ['REMARK'] if 'REMARK' in os.environ else ''}"
     )
 
     if not os.path.exists('checkpoint'):
@@ -74,7 +81,7 @@ def train():
 
     try:
         pretrained_word_embedding = torch.from_numpy(
-            np.load('./data/train/pretrained_word_embedding.npy')).float()
+            np.load('../data/train/pretrained_word_embedding.npy')).float()
     except FileNotFoundError:
         pretrained_word_embedding = None
 
@@ -82,14 +89,14 @@ def train():
         try:
             pretrained_entity_embedding = torch.from_numpy(
                 np.load(
-                    './data/train/pretrained_entity_embedding.npy')).float()
+                    '../data/train/pretrained_entity_embedding.npy')).float()
         except FileNotFoundError:
             pretrained_entity_embedding = None
 
         try:
             pretrained_context_embedding = torch.from_numpy(
                 np.load(
-                    './data/train/pretrained_context_embedding.npy')).float()
+                    '../data/train/pretrained_context_embedding.npy')).float()
         except FileNotFoundError:
             pretrained_context_embedding = None
 
@@ -101,8 +108,11 @@ def train():
 
     print(model)
 
-    dataset = BaseDataset('data/train/behaviors_parsed.tsv',
-                          'data/train/news_parsed.tsv',
+    if torch.cuda.device_count() > 1:
+        model = nn.DataParallel(model, device_ids=[4, 5])
+
+    dataset = BaseDataset('../data/train/behaviors_parsed.tsv',
+                          '../data/train/news_parsed.tsv',
                           Config.dataset_attributes)
 
     print(f"Load training dataset with size {len(dataset)}.")
@@ -203,7 +213,7 @@ def train():
 
             if i % Config.num_batches_validate == 0:
                 val_auc, val_mrr, val_ndcg5, val_ndcg10 = evaluate(
-                    model, './data/val')
+                    model, '../data/val')
                 writer.add_scalar('Validation/AUC', val_auc, step)
                 writer.add_scalar('Validation/MRR', val_mrr, step)
                 writer.add_scalar('Validation/nDCG@5', val_ndcg5, step)
@@ -240,4 +250,5 @@ def time_since(since):
 if __name__ == '__main__':
     print('Using device:', device)
     print(f'Training model {model_name}')
+
     train()

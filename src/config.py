@@ -1,6 +1,6 @@
 import os
 
-model_name = os.environ['MODEL_NAME'] if 'MODEL_NAME' in os.environ else 'NRMS'
+model_name = os.environ['MODEL_NAME'] if 'MODEL_NAME' in os.environ else 'TANR'
 # Currently included model
 assert model_name in ['NRMS', 'NAML', 'LSTUR', 'DKN', 'HiFiArk', 'TANR', 'FIM']
 
@@ -29,10 +29,10 @@ class BaseConfig():
     negative_sampling_ratio = 4  # K
     dropout_probability = 0.2
     # Modify the following by the output of `src/dataprocess.py`
-    num_words = 1 + 44774
-    num_categories = 1 + 295
-    num_entities = 1 + 14697
-    num_users = 1 + 711222
+    num_words = 1 + 31312
+    num_categories = 1 + 274
+    num_entities = 1 + 8312
+    num_users = 1 + 50000
     word_embedding_dim = 300
     category_embedding_dim = 100
     # Modify the following only if you use another dataset

@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.metrics import roc_auc_score
+from torch import nn
 from tqdm import tqdm
 import torch
 from config import model_name
@@ -191,7 +192,7 @@ def evaluate(model, directory, generate_json=False, json_path=None):
         list(news2vector.values())[0].size())
 
     user_dataset = UserDataset(os.path.join(directory, 'behaviors.tsv'),
-                               'data/train/user2int.tsv')
+                               '../data/train/user2int.tsv')
     user_dataloader = DataLoader(user_dataset,
                                  batch_size=Config.batch_size,
                                  shuffle=False,
@@ -282,6 +283,8 @@ if __name__ == '__main__':
     # Don't need to load pretrained word/entity/context embedding
     # since it will be loaded from checkpoint later
     model = Model(Config).to(device)
+    if torch.cuda.device_count() > 1:
+        model = nn.DataParallel(model, device_ids=[4, 5])
     from train import latest_checkpoint  # Avoid circular imports
     checkpoint_path = latest_checkpoint(
         os.path.join('./checkpoint', model_name))
@@ -292,8 +295,8 @@ if __name__ == '__main__':
     checkpoint = torch.load(checkpoint_path)
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
-    auc, mrr, ndcg5, ndcg10 = evaluate(model, './data/test', True,
-                                       './data/test/prediction.json')
+    auc, mrr, ndcg5, ndcg10 = evaluate(model, '../data/test', True,
+                                       '../data/test/prediction.json')
     print(
         f'AUC: {auc:.4f}\nMRR: {mrr:.4f}\nnDCG@5: {ndcg5:.4f}\nnDCG@10: {ndcg10:.4f}'
     )

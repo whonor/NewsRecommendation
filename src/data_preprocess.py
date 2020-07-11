@@ -351,9 +351,9 @@ def transform2json(source, target):
 
 
 if __name__ == '__main__':
-    train_dir = './data/train'
-    val_dir = './data/val'
-    test_dir = './data/test'
+    train_dir = '../data/train'
+    val_dir = '../data/val'
+    test_dir = '../data/test'
     Path(val_dir).mkdir(exist_ok=True)
 
     print('Process data for training')
@@ -363,6 +363,7 @@ if __name__ == '__main__':
                     path.join(train_dir, 'behaviors_parsed.tsv'),
                     path.join(val_dir, 'behaviors.tsv'),
                     path.join(train_dir, 'user2int.tsv'))
+
 
     print('Parse news')
     parse_news(path.join(train_dir, 'news.tsv'),
@@ -378,7 +379,7 @@ if __name__ == '__main__':
 
     print('Generate word embedding')
     generate_word_embedding(
-        f'./data/glove/glove.840B.{Config.word_embedding_dim}d.txt',
+        f'../data/glove.840B.{Config.word_embedding_dim}d.txt',
         path.join(train_dir, 'pretrained_word_embedding.npy'),
         path.join(train_dir, 'word2int.tsv'))
 
